@@ -2,6 +2,7 @@
   "use strict";
 
   const ATTR = "data-pr-colorizer";
+  let _prevDetectedRepos = null;
 
   function getThemeOpacity() {
     const mode = document.documentElement.getAttribute("data-color-mode");
@@ -102,9 +103,14 @@
         row.setAttribute(ATTR, repo);
       }
 
-      // Store detected repos for popup
+      // Store detected repos for popup only when the set changes
       if (detectedRepos.size > 0) {
-        chrome.storage.local.set({ detectedRepos: [...detectedRepos] });
+        const sorted = [...detectedRepos].sort();
+        const key = sorted.join("\n");
+        if (key !== _prevDetectedRepos) {
+          _prevDetectedRepos = key;
+          chrome.storage.local.set({ detectedRepos: sorted });
+        }
       }
     } catch (e) {
       console.error("[PR Colorizer]", e);
@@ -137,20 +143,27 @@
     }
   }
 
+  // Debounced version for high-frequency triggers
+  let _colorizeTimer = null;
+  function debouncedLoadSettingsAndColorize() {
+    clearTimeout(_colorizeTimer);
+    _colorizeTimer = setTimeout(loadSettingsAndColorize, 100);
+  }
+
   // Initial colorize
   loadSettingsAndColorize();
 
-  // Turbo Drive full navigation
+  // Turbo Drive full navigation — infrequent, respond immediately
   document.addEventListener("turbo:load", function () {
     loadSettingsAndColorize();
   });
 
-  // GitHub soft navigation (tab switches, filter changes)
+  // GitHub soft navigation — infrequent, respond immediately
   document.addEventListener("soft-nav:end", function () {
     loadSettingsAndColorize();
   });
 
-  // MutationObserver for dynamic DOM updates (infinite scroll, AJAX)
+  // MutationObserver for dynamic DOM updates (infinite scroll, AJAX) — debounced
   const mainEl = document.querySelector("main") || document.body;
   const observer = new MutationObserver(function (mutations) {
     let hasNewNodes = false;
@@ -161,15 +174,15 @@
       }
     }
     if (hasNewNodes) {
-      loadSettingsAndColorize();
+      debouncedLoadSettingsAndColorize();
     }
   });
   observer.observe(mainEl, { childList: true, subtree: true });
 
-  // Re-colorize when settings change from popup
+  // Re-colorize when settings change from popup — debounced
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area === "sync") {
-      loadSettingsAndColorize();
+      debouncedLoadSettingsAndColorize();
     }
   });
 })();

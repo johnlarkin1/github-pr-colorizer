@@ -12,6 +12,14 @@
   let repoColors = {};
   let detectedRepos = [];
 
+  let _syncWriteTimer = null;
+  function debouncedSyncWrite(data) {
+    clearTimeout(_syncWriteTimer);
+    _syncWriteTimer = setTimeout(function () {
+      chrome.storage.sync.set(data);
+    }, 80);
+  }
+
   function loadSettings() {
     chrome.storage.sync.get(
       { mode: "auto", repoColors: {}, enabled: true },
@@ -72,15 +80,18 @@
       fill.style.backgroundColor = color;
 
       picker.addEventListener("input", function () {
-        // Auto-switch to manual mode when user picks a color
+        // Live preview only — no storage write during drag
         if (currentMode === "auto") {
           currentMode = "manual";
           updateModeButtons();
-          chrome.storage.sync.set({ mode: "manual" });
         }
         fill.style.backgroundColor = picker.value;
         repoColors[repo] = picker.value;
-        chrome.storage.sync.set({ repoColors: repoColors });
+      });
+
+      picker.addEventListener("change", function () {
+        // Write to storage once when the picker is closed/committed
+        debouncedSyncWrite({ mode: currentMode, repoColors: repoColors });
       });
 
       swatch.appendChild(picker);
