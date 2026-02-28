@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <h1>PR Colorizer</h1>
+    <label class="toggle">
+      <input type="checkbox" id="enabled-toggle" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="mode-selector">
+    <button id="mode-auto" class="mode-btn active">Auto</button>
+    <button id="mode-manual" class="mode-btn">Manual</button>
+  </div>
+
+  <div id="repo-list" class="repo-list">
+    <div id="empty-state" class="empty-state">
+      No repos detected yet. Visit a GitHub /pulls page first.
+    </div>
+  </div>
+
+  <div class="footer">
+    <button id="reset-btn" class="reset-btn">Reset All Colors</button>
+  </div>
+
+  <script src="palette.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

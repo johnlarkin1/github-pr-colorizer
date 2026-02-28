@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub PR Colorizer",
+  "version": "1.0.0",
+  "description": "Colorize GitHub pull request rows by repository for quick visual grouping.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://github.com/pulls*",
+        "*://github.com/*/pulls*"
+      ],
+      "js": ["palette.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+}
