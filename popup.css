@@ -1,0 +1,204 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  font-size: 13px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #21262d;
+}
+
+.header h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #30363d;
+  border-radius: 11px;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #c9d1d9;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle input:checked + .toggle-slider {
+  background: #238636;
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* Mode selector */
+.mode-selector {
+  display: flex;
+  padding: 10px 16px;
+  gap: 8px;
+  border-bottom: 1px solid #21262d;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-btn:hover {
+  border-color: #8b949e;
+  color: #c9d1d9;
+}
+
+.mode-btn.active {
+  background: #238636;
+  border-color: #238636;
+  color: #ffffff;
+}
+
+/* Repo list */
+.repo-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.repo-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.repo-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.repo-list::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+.repo-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  gap: 10px;
+}
+
+.repo-row:hover {
+  background: #161b22;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #30363d;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-swatch input[type="color"] {
+  position: absolute;
+  inset: -4px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.color-swatch input[type="color"]:enabled + .swatch-fill {
+  cursor: pointer;
+}
+
+.swatch-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.repo-name {
+  flex: 1;
+  font-size: 12px;
+  color: #c9d1d9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-state {
+  padding: 24px 16px;
+  text-align: center;
+  color: #484f58;
+  font-size: 12px;
+}
+
+/* Footer */
+.footer {
+  padding: 10px 16px;
+  border-top: 1px solid #21262d;
+}
+
+.reset-btn {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reset-btn:hover {
+  border-color: #da3633;
+  color: #f85149;
+  background: #1a0e0e;
+}
