@@ -147,7 +147,7 @@
   let _colorizeTimer = null;
   function debouncedLoadSettingsAndColorize() {
     clearTimeout(_colorizeTimer);
-    _colorizeTimer = setTimeout(loadSettingsAndColorize, 100);
+    _colorizeTimer = setTimeout(loadSettingsAndColorize, 30);
   }
 
   // Initial colorize
@@ -183,6 +183,18 @@
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area === "sync") {
       debouncedLoadSettingsAndColorize();
+    }
+  });
+
+  // Instant preview when popup sends direct color updates (bypasses storage)
+  chrome.runtime.onMessage.addListener(function (msg) {
+    if (msg.type === "preview" && msg.repo && msg.color) {
+      const opacity = getThemeOpacity();
+      const rows = document.querySelectorAll('[' + ATTR + '="' + msg.repo + '"]');
+      for (const row of rows) {
+        row.style.backgroundColor = hexToRgba(msg.color, opacity);
+        row.style.borderLeft = '4px solid ' + msg.color;
+      }
     }
   });
 })();

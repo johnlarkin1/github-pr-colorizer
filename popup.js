@@ -12,12 +12,14 @@
   let repoColors = {};
   let detectedRepos = [];
 
-  let _syncWriteTimer = null;
-  function debouncedSyncWrite(data) {
-    clearTimeout(_syncWriteTimer);
-    _syncWriteTimer = setTimeout(function () {
-      chrome.storage.sync.set(data);
-    }, 80);
+  // Query active tab once for direct messaging to content script
+  let activeTabId = null;
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (tabs[0]) activeTabId = tabs[0].id;
+  });
+
+  function commitColors() {
+    chrome.storage.sync.set({ mode: currentMode, repoColors: repoColors });
   }
 
   function loadSettings() {
@@ -80,19 +82,22 @@
       fill.style.backgroundColor = color;
 
       picker.addEventListener("input", function () {
-        // Live preview only — no storage write during drag
+        // Live preview — send directly to content script, no storage write
         if (currentMode === "auto") {
           currentMode = "manual";
           updateModeButtons();
         }
         fill.style.backgroundColor = picker.value;
         repoColors[repo] = picker.value;
+        if (activeTabId) {
+          chrome.tabs.sendMessage(activeTabId, {
+            type: "preview", repo: repo, color: picker.value
+          });
+        }
       });
 
-      picker.addEventListener("change", function () {
-        // Write to storage once when the picker is closed/committed
-        debouncedSyncWrite({ mode: currentMode, repoColors: repoColors });
-      });
+      picker.addEventListener("change", commitColors);
+      picker.addEventListener("blur", commitColors);
 
       swatch.appendChild(picker);
       swatch.appendChild(fill);
