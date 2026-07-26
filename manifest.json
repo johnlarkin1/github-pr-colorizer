@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GitHub PR Colorizer",
   "version": "1.0.0",
-  "description": "Colorize GitHub pull request rows by repository for quick visual grouping.",
+  "description": "Colorize GitHub pull request and issue rows by repository for quick visual grouping.",
   "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
@@ -16,7 +16,9 @@
     {
       "matches": [
         "*://github.com/pulls*",
-        "*://github.com/*/pulls*"
+        "*://github.com/*/pulls*",
+        "*://github.com/issues*",
+        "*://github.com/*/issues*"
       ],
       "js": ["palette.js", "content.js"],
       "run_at": "document_idle"
