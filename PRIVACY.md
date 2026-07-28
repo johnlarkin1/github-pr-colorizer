@@ -1,6 +1,6 @@
 # Privacy Policy — GitHub PR Colorizer
 
-**Last updated:** March 1, 2026
+**Last updated:** July 26, 2026
 
 ## Data Collection
 
@@ -8,7 +8,7 @@ GitHub PR Colorizer does **not** collect, store, transmit, or share any personal
 
 ## What the Extension Does
 
-- Reads repository names from GitHub pull request list pages to apply colored backgrounds for visual grouping.
+- Reads repository names from GitHub pull request and issue list pages to apply colored backgrounds for visual grouping.
 - Stores your preferences (enabled state, color mode, color assignments) locally using Chrome's `storage.sync` and `storage.local` APIs. This data never leaves your browser (except to sync across your own signed-in Chrome instances via Google's built-in sync).
 
 ## Permissions
@@ -16,7 +16,7 @@ GitHub PR Colorizer does **not** collect, store, transmit, or share any personal
 | Permission | Why |
 |---|---|
 | `storage` | Save your color preferences locally |
-| Host access to `github.com` | Read PR row elements and apply styling on GitHub pull request pages |
+| Host access to `github.com` | Read row elements and apply styling on GitHub pull request and issue list pages |
 
 ## Third Parties
 

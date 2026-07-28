@@ -4,12 +4,34 @@
   const ATTR = "data-pr-colorizer";
   let _prevDetectedRepos = null;
 
+  // Only colorize list pages. Guards against the /*/issues* match pattern, which
+  // also covers issue detail pages. Re-checked on every colorize — soft navigation
+  // changes the path without a reload.
+  const LIST_PAGE = /^\/(pulls|issues)(\/|$)|^\/[^/]+\/[^/]+\/(pulls|issues)\/?$/;
+
   function getThemeOpacity() {
+    // data-color-mode is "auto" | "light" | "dark"; "auto" defers to the OS
     const mode = document.documentElement.getAttribute("data-color-mode");
-    return mode === "dark" ? 0.18 : 0.14;
+    const isDark =
+      mode === "dark" ||
+      (mode === "auto" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return isDark ? 0.18 : 0.14;
   }
 
   function findPrRows() {
+    // New React ListView UI. The row is an <li>, but only sometimes a direct child
+    // of the <ul>: /pulls/* nests it directly, /issues* wraps it in a <div>. Take
+    // the outermost <li> under the list to cover both. Never select on the
+    // ListItem-module__* classes — those hashes rotate on every GitHub deploy.
+    const listViewRows = [
+      ...document.querySelectorAll(
+        'ul[data-listview-component="items-list"] li'
+      ),
+    ].filter((li) => !li.parentElement.closest("li"));
+    if (listViewRows.length > 0) return listViewRows;
+
+    // Legacy server-rendered UI (still serving repo-scoped /owner/repo/pulls)
     const selectors = [
       ".js-issue-row",
       ".Box-row",
@@ -29,16 +51,38 @@
     "features", "marketplace", "pricing", "enterprise", "team",
   ]);
 
+  const PULL_OR_ISSUE_PATH = /^\/([^/]+)\/([^/]+)\/(?:pull|issues)\/\d+/;
+
+  // Read a.pathname rather than the href attribute: /pulls/* renders absolute
+  // hrefs (https://github.com/owner/repo/pull/1) while /issues* renders relative
+  // ones, and pathname normalizes both. Skip off-site links.
+  function sameOriginPath(a) {
+    if (a.hostname && a.hostname !== location.hostname) return null;
+    return a.pathname;
+  }
+
   function extractRepoName(row) {
     try {
-      // Strategy 1: PR link pattern /<owner>/<repo>/pull/<num> — most specific
+      // Strategy 1: pull/issue link path /<owner>/<repo>/(pull|issues)/<num> — most specific
       const allLinks = row.querySelectorAll("a[href]");
       for (const a of allLinks) {
-        const match = a.getAttribute("href").match(/^\/([^/]+)\/([^/]+)\/pull\/\d+/);
+        const path = sameOriginPath(a);
+        if (!path) continue;
+        const match = path.match(PULL_OR_ISSUE_PATH);
         if (match) return match[1] + "/" + match[2];
       }
 
-      // Strategy 2: anchor with data-hovercard-type="repository" — GitHub semantic marker
+      // Strategy 2: data-hovercard-url — always relative, even when href is absolute.
+      // On the new UI the title link is the row's only anchor, so this is the sole fallback.
+      const hovercardUrl = row.querySelector("a[data-hovercard-url]");
+      if (hovercardUrl) {
+        const match = hovercardUrl
+          .getAttribute("data-hovercard-url")
+          .match(/^\/([^/]+)\/([^/]+)\//);
+        if (match) return match[1] + "/" + match[2];
+      }
+
+      // Strategy 3: anchor with data-hovercard-type="repository" — GitHub semantic marker
       const hovercard = row.querySelector('a[data-hovercard-type="repository"]');
       if (hovercard) {
         const href = hovercard.getAttribute("href");
@@ -46,7 +90,7 @@
         if (parts.length >= 2) return parts[0] + "/" + parts[1];
       }
 
-      // Strategy 3: anchor text matching owner/repo regex — visible text is reliable
+      // Strategy 4: anchor text matching owner/repo regex — visible text is reliable
       for (const a of allLinks) {
         const text = a.textContent.trim();
         if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(text) && !text.includes(" ")) {
@@ -54,15 +98,15 @@
         }
       }
 
-      // Strategy 4: 2-segment path fallback with stricter validation
-      const repoLinks = row.querySelectorAll('a[href^="/"]');
-      for (const a of repoLinks) {
-        const href = a.getAttribute("href");
-        const parts = href.split("/").filter(Boolean);
+      // Strategy 5: 2-segment path fallback with stricter validation
+      for (const a of allLinks) {
+        const path = sameOriginPath(a);
+        if (!path) continue;
+        const parts = path.split("/").filter(Boolean);
         if (
           parts.length === 2 &&
-          !href.includes("/pulls") &&
-          !href.includes("/issues") &&
+          !path.includes("/pulls") &&
+          !path.includes("/issues") &&
           !NON_REPO_PREFIXES.has(parts[0].toLowerCase())
         ) {
           return parts.join("/");
@@ -76,7 +120,7 @@
 
   function colorizeRows(settings) {
     try {
-      if (!settings.enabled) {
+      if (!settings.enabled || !LIST_PAGE.test(location.pathname)) {
         clearColors();
         return;
       }
